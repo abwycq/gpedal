@@ -39,7 +39,35 @@ export class GPXRoutePointFactory {
     this.points = [];
   }
 
+  // NEW: Densify points while keeping elevation from the GPX file
+  densifyPointsWithElevation(gpxPoints, desiredDistanceBetween = 20) {
+    let densePoints = [];
+    if (!gpxPoints || gpxPoints.length === 0) {
+      return densePoints;
+    }
+
+    // Add first point
+    let first = gpxPoints[0];
+    densePoints.push(new RoutePoint({elevation: first.elevation, location: first.location}));
+
+    for (let i = 0; i < gpxPoints.length - 1; i++) {
+      let p1 = gpxPoints[i];
+      let p2 = gpxPoints[i + 1];
+      let dist = google.maps.geometry.spherical.computeDistanceBetween(p1.location, p2.location) || 0;
+
+      let numSteps = Math.max(1, Math.floor(dist / desiredDistanceBetween));
+      for (let step = 1; step <= numSteps; step++) {
+        let pct = step / numSteps;
+        let loc = google.maps.geometry.spherical.interpolate(p1.location, p2.location, pct);
+        let elev = p1.elevation + (p2.elevation - p1.elevation) * pct;
+        densePoints.push(new RoutePoint({elevation: elev, location: loc}));
+      }
+    }
+    return densePoints;
+  }
+
   expandPointsWithGradeAndHeading() {
+    // (keep your existing code exactly as it is)
     for(let x=0; x<this.points.length; x++) {
       let p1 = this.points[x];
       if(x < (this.points.length - 1)) {
@@ -62,9 +90,9 @@ export class GPXRoutePointFactory {
     let grades = this.points.map((p,i) => {return [i,p.grade]});
 
     let smoothed_grades_obj = ssci.smooth.kernel2()
-    		                      .kernel("Gaussian")
-    		                      .data(grades)
-    		                      .scale(2);
+                              .kernel("Gaussian")
+                              .data(grades)
+                              .scale(2);
     smoothed_grades_obj();
     let smoothed_grades = smoothed_grades_obj.output();
     for(let x=0; x<this.points.length; x++) {
@@ -76,6 +104,7 @@ export class GPXRoutePointFactory {
   }
 
   async expandPointsWithElevation(gpxPoints) {
+    // (keep your existing Google Elevation code exactly as it is)
     let start=0;
     let desiredDistanceBetween = 20;
     let maxPoints = 512;
@@ -122,22 +151,38 @@ export class GPXRoutePointFactory {
   }
 
   async create() {
-    let cacheName = 'gpx-cache-' + this.md5;
-    let raw = managedLocalStorage.get(cacheName)
-    if(raw !== undefined && raw !== null) {
+    // Parse GPX and check for elevation data
+    let gpxParser = new DOMParser();
+    let gpxDom = gpxParser.parseFromString(this.fileBody, "text/xml");
+    let gpxPoints = Array.from(gpxDom.documentElement.getElementsByTagName('trkpt')).map(p => {
+      let lat = parseFloat(p.getAttribute('lat')),
+          lng = parseFloat(p.getAttribute('lon'));
+      let eleEl = p.getElementsByTagName('ele')[0];
+      let elevation = (eleEl && eleEl.textContent) ? parseFloat(eleEl.textContent.trim()) : null;
+
+      let opts = { location: { lat, lng } };
+      if (elevation !== null && !isNaN(elevation)) {
+        opts.elevation = elevation;
+      }
+      return new RoutePoint(opts);
+    });
+
+    let hasElevations = gpxPoints.length > 0 &&
+      gpxPoints.every(p => typeof p.elevation === 'number' && !isNaN(p.elevation));
+
+    let cachePrefix = hasElevations ? 'gpx-elev-cache-' : 'gpx-cache-';
+    let cacheName = cachePrefix + this.md5;
+
+    let raw = managedLocalStorage.get(cacheName);
+    if (raw !== undefined && raw !== null) {
       managedLocalStorage.unshift('gpx-cache', cacheName);
-      this.points = raw.map(r => {return RoutePoint.fromJSON(r)});
+      this.points = raw.map(r => { return RoutePoint.fromJSON(r) });
     } else {
-      let gpxParser = new DOMParser();
-      let gpxDom = gpxParser.parseFromString(this.fileBody, "text/xml");
-      let gpxPoints = Array.from(gpxDom.documentElement.getElementsByTagName('trkpt')).map(p => {
-        let lat = parseFloat(p.getAttribute('lat')),
-            lng = parseFloat(p.getAttribute('lon'));
-
-        return new RoutePoint({location: {lat, lng}});
-      });
-
-      await this.expandPointsWithElevation(gpxPoints);
+      if (hasElevations) {
+        this.points = this.densifyPointsWithElevation(gpxPoints);
+      } else {
+        await this.expandPointsWithElevation(gpxPoints);
+      }
       this.expandPointsWithGradeAndHeading();
 
       managedLocalStorage.add('gpx-cache', cacheName, this.points);
@@ -145,5 +190,4 @@ export class GPXRoutePointFactory {
 
     return this.points;
   }
-
 }

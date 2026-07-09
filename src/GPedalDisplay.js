@@ -675,26 +675,70 @@ export class GPedalDisplay {
     $stva.innerHTML = "Done!";
   }
 
+  downloadGPX(name) {
+    let template = document.getElementById('strava-gpx-template').innerHTML;
+    let points = this.history.map(h => {
+      return {
+        lat: h.location.lat(),
+        lng: h.location.lng(),
+        elevation: h.elevation.toFixed(5),
+        time: dateFormat(h.time),
+        power: h.power,
+        hr: h.hr,
+        cad: h.cad
+      };
+    });
+
+    let gpxBody = Mustache.render(template, {
+      export_time: dateFormat(new Date()),
+      export_name: name,
+      points: points
+    });
+
+    let blob = new Blob([gpxBody], { type: 'application/gpx+xml;charset=utf-8' });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = (name || 'gpedal-ride').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.gpx';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  }
+
   showFinalizeUI(msg) {
     document.getElementById('ui-finalize-container').style.display = 'block';
     document.getElementById('ui-finalize-label').innerHTML = msg;
-    if(hasStravaOauthTokens()) {
-      let now = new Date();
-      let ride_name = "GPedal - ";
-      if(this.routeName) {
-        ride_name += this.routeName;
-      } else {
-        ride_name += (now.getMonth() + 1) + "/" + now.getDate()
-      }
-      let $name = document.getElementById('input-ride-name');
-      $name.value = ride_name;
-      $name.style.display = 'block';
 
+    let now = new Date();
+    let ride_name = "GPedal - ";
+    if (this.routeName) {
+      ride_name += this.routeName;
+    } else {
+      ride_name += (now.getMonth() + 1) + "/" + now.getDate();
+    }
+
+    let $name = document.getElementById('input-ride-name');
+    $name.value = ride_name;
+    $name.style.display = 'block';
+
+    // NEW: Download GPX button (always visible)
+    let $dl = document.getElementById('btn-download-gpx');
+    if ($dl) {
+      $dl.style.display = 'block';
+      $dl.onclick = e => {
+        e.preventDefault();
+        this.downloadGPX($name.value);
+      };
+    }
+
+    if (hasStravaOauthTokens()) {
       let $stva = document.getElementById('btn-export-strava');
       $stva.style.display = 'block';
       $stva.onclick = e => {
         e.preventDefault();
-
         this.stravaExport()
           .catch(error => {
             console.log("Error: ", error);
