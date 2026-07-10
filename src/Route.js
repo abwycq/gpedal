@@ -104,7 +104,7 @@ export class GPXRoutePointFactory {
   }
 
   async expandPointsWithElevation(gpxPoints) {
-    // (keep your existing Google Elevation code exactly as it is)
+    // (keep existing Google Elevation code exactly as it is)
     let start=0;
     let desiredDistanceBetween = 20;
     let maxPoints = 512;

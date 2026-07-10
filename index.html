@@ -1,6 +1,37 @@
 <!doctype html>
 <html lang="en">
   <head>
+  
+    <script>
+    (function() {
+      const STORAGE_KEY = 'gpedal_google_maps_key';
+      let apiKey = localStorage.getItem(STORAGE_KEY);
+
+      if (!apiKey) {
+        apiKey = prompt(
+          "Please enter your Google Maps API key.\n\n" +
+          "Get one here: https://console.cloud.google.com/apis/credentials\n\n" +
+          "Restrict it to: https://abwycq.github.io/gpedal/*"
+        );
+
+        if (apiKey && apiKey.trim() !== "") {
+          localStorage.setItem(STORAGE_KEY, apiKey.trim());
+          window.location.reload();
+        } else {
+          document.write("<h2 style='color:red;padding:2rem'>Google Maps API key is required.</h2>");
+          throw new Error("No API key");
+        }
+      } else {
+        // Create and append the script properly (no document.write)
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,marker`;
+        script.async = false;           // load synchronously so bundle.js sees google
+        document.head.appendChild(script);
+      }
+    })();
+    </script>
+
+
     <title>GPedal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta charset="utf-8">
@@ -523,43 +554,8 @@
       }
 
     </style>
-    
-    <script>
-    (function() {
-      const STORAGE_KEY = 'gpedal_google_maps_key';
-      const apiKey = localStorage.getItem(STORAGE_KEY);
-
-      if (!apiKey) {
-        // No key yet - ask user and reload
-        const key = prompt(
-          "Please enter your Google Maps API key to use this site.\n\n" +
-          "Get a free key here: https://console.cloud.google.com/apis/credentials\n\n" +
-          "Restrict it to: https://abwycq.github.io/gpedal/*"
-        );
-
-        if (key && key.trim() !== "") {
-          localStorage.setItem(STORAGE_KEY, key.trim());
-          window.location.reload();
-        } else {
-          // Block the page if no key
-          document.write("<h2 style='color:red; padding: 2rem;'>Google Maps API key is required.</h2>");
-          throw new Error("No Google Maps API key provided");
-        }
-      } else {
-        // Key exists - load Google Maps synchronously before bundle.js runs
-        
-        //document.write(
-        //  '<script src="https://maps.googleapis.com/maps/api/js?key=' + 
-        //  apiKey + 
-        //  '&libraries=geometry"><\/script>'
-        //);
-        // fix for use of advanced marker element
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,marker`;
-      }
-    })();
-    </script>
-    
   </head>
+  
   <body>
     <div id="app-container" style="display: none">
         <div id="ui-left-container">
