@@ -525,36 +525,39 @@
     </style>
     
     <script>
-(function() {
-  const STORAGE_KEY = 'gpedal_google_maps_key';
-  const apiKey = localStorage.getItem(STORAGE_KEY);
+    (function() {
+      const STORAGE_KEY = 'gpedal_google_maps_key';
+      const apiKey = localStorage.getItem(STORAGE_KEY);
 
-  if (!apiKey) {
-    // No key yet - ask user and reload
-    const key = prompt(
-      "Please enter your Google Maps API key to use this site.\n\n" +
-      "Get a free key here: https://console.cloud.google.com/apis/credentials\n\n" +
-      "Restrict it to: https://abwycq.github.io/gpedal/*"
-    );
+      if (!apiKey) {
+        // No key yet - ask user and reload
+        const key = prompt(
+          "Please enter your Google Maps API key to use this site.\n\n" +
+          "Get a free key here: https://console.cloud.google.com/apis/credentials\n\n" +
+          "Restrict it to: https://abwycq.github.io/gpedal/*"
+        );
 
-    if (key && key.trim() !== "") {
-      localStorage.setItem(STORAGE_KEY, key.trim());
-      window.location.reload();
-    } else {
-      // Block the page if no key
-      document.write("<h2 style='color:red; padding: 2rem;'>Google Maps API key is required.</h2>");
-      throw new Error("No Google Maps API key provided");
-    }
-  } else {
-    // Key exists - load Google Maps synchronously before bundle.js runs
-    document.write(
-      '<script src="https://maps.googleapis.com/maps/api/js?key=' + 
-      apiKey + 
-      '&libraries=geometry"><\/script>'
-    );
-  }
-})();
-</script>
+        if (key && key.trim() !== "") {
+          localStorage.setItem(STORAGE_KEY, key.trim());
+          window.location.reload();
+        } else {
+          // Block the page if no key
+          document.write("<h2 style='color:red; padding: 2rem;'>Google Maps API key is required.</h2>");
+          throw new Error("No Google Maps API key provided");
+        }
+      } else {
+        // Key exists - load Google Maps synchronously before bundle.js runs
+        
+        //document.write(
+        //  '<script src="https://maps.googleapis.com/maps/api/js?key=' + 
+        //  apiKey + 
+        //  '&libraries=geometry"><\/script>'
+        //);
+        // fix for use of advanced marker element
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,marker`;
+      }
+    })();
+    </script>
     
   </head>
   <body>

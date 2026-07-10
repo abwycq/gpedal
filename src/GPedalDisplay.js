@@ -101,7 +101,7 @@ export class GPedalDisplay {
         map: this.fullMap,
         //icon: './images/here.png'  // advanced markers don't have icons
     });
-    this.fullMarker.setMap(this.fullMap);
+    //this.fullMarker.setMap(this.fullMap);  // no need for this now??
 
     let streetview = this.streetViewPanoramaInit(this.ridingState.point.location, this.ridingState.point.heading);
     this.miniMap.setStreetView(streetview);
