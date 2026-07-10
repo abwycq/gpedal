@@ -9,23 +9,22 @@
 
       if (!apiKey) {
         apiKey = prompt(
-          "Please enter your Google Maps API key.\n\n" +
-          "Get one here: https://console.cloud.google.com/apis/credentials\n\n" +
+          "Please enter your Google Maps API key to use this site.\n\n" +
+          "Get a free key here: https://console.cloud.google.com/apis/credentials\n\n" +
           "Restrict it to: https://abwycq.github.io/gpedal/*"
         );
 
         if (apiKey && apiKey.trim() !== "") {
           localStorage.setItem(STORAGE_KEY, apiKey.trim());
-          window.location.reload();
+          window.location.reload();   // Reload so the script loads before bundle.js
         } else {
           document.write("<h2 style='color:red;padding:2rem'>Google Maps API key is required.</h2>");
           throw new Error("No API key");
         }
       } else {
-        // Create and append the script properly (no document.write)
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,marker`;
-        script.async = false;           // load synchronously so bundle.js sees google
+        script.async = false;
         document.head.appendChild(script);
       }
     })();
