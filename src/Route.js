@@ -181,8 +181,14 @@ export class GPXRoutePointFactory {
       if (hasElevations) {
         this.points = this.densifyPointsWithElevation(gpxPoints);
       } else {
-        await this.expandPointsWithElevation(gpxPoints);
-      }
+      // No elevation in GPX → make a flat route (no Google API call)
+      this.points = gpxPoints.map(p => {
+        return new RoutePoint({
+          elevation: 0,
+          location: p.location
+        });
+      });
+    }
       this.expandPointsWithGradeAndHeading();
 
       managedLocalStorage.add('gpx-cache', cacheName, this.points);
