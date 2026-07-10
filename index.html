@@ -523,6 +523,39 @@
       }
 
     </style>
+    
+    <script>
+(function() {
+  const STORAGE_KEY = 'gpedal_google_maps_key';
+  const apiKey = localStorage.getItem(STORAGE_KEY);
+
+  if (!apiKey) {
+    // No key yet - ask user and reload
+    const key = prompt(
+      "Please enter your Google Maps API key to use this site.\n\n" +
+      "Get a free key here: https://console.cloud.google.com/apis/credentials\n\n" +
+      "Restrict it to: https://abwycq.github.io/gpedal/*"
+    );
+
+    if (key && key.trim() !== "") {
+      localStorage.setItem(STORAGE_KEY, key.trim());
+      window.location.reload();
+    } else {
+      // Block the page if no key
+      document.write("<h2 style='color:red; padding: 2rem;'>Google Maps API key is required.</h2>");
+      throw new Error("No Google Maps API key provided");
+    }
+  } else {
+    // Key exists - load Google Maps synchronously before bundle.js runs
+    document.write(
+      '<script src="https://maps.googleapis.com/maps/api/js?key=' + 
+      apiKey + 
+      '&libraries=geometry"><\/script>'
+    );
+  }
+})();
+</script>
+    
   </head>
   <body>
     <div id="app-container" style="display: none">
@@ -842,50 +875,6 @@
     </script>
 
     <script src="bundle.js?v=3dfva3d"></script>
-    
-<script>
-(function() {
-  const STORAGE_KEY = 'gpedal_google_maps_key';
-
-  function loadGoogleMaps(key) {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry`;
-    script.async = false;
-    document.head.appendChild(script);
-  }
-
-  let apiKey = localStorage.getItem(STORAGE_KEY);
-
-  if (!apiKey) {
-    apiKey = prompt(
-      "Please enter your Google Maps API key.\n\n" +
-      "Get one here: https://console.cloud.google.com/apis/credentials\n\n" +
-      "Restrict it to: https://abwycq.github.io/gpedal/*"
-    );
-
-    if (apiKey && apiKey.trim() !== "") {
-      localStorage.setItem(STORAGE_KEY, apiKey.trim());
-      window.location.reload();
-    } else {
-      alert("A Google Maps API key is required to use this site.");
-    }
-  } else {
-    loadGoogleMaps(apiKey);
-  }
-
-  // Function to let users change their API key later
-  window.changeGoogleMapsKey = function() {
-    const currentKey = localStorage.getItem(STORAGE_KEY) || "";
-    const newKey = prompt("Enter your new Google Maps API key:", currentKey);
-
-    if (newKey && newKey.trim() !== "") {
-      localStorage.setItem(STORAGE_KEY, newKey.trim());
-      alert("API key updated. The page will now reload.");
-      window.location.reload();
-    }
-  };
-})();
-</script>
 
   </body>
 </html>
