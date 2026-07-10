@@ -791,6 +791,9 @@
                                 </div>
                             </div>
                         </div>
+                        <button onclick="changeGoogleMapsKey()" class="btn btn-secondary btn-sm">
+                          Change Maps API Key
+                        </button>
                         <button type="submit" id="begin-session" class="btn btn-primary">Begin</button>
                     </form>
                 </div>
@@ -840,33 +843,47 @@
 
     <script src="bundle.js?v=3dfva3d"></script>
     
-    <script>
+<script>
 (function() {
   const STORAGE_KEY = 'gpedal_google_maps_key';
+
+  function loadGoogleMaps(key) {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry`;
+    script.async = false;
+    document.head.appendChild(script);
+  }
+
   let apiKey = localStorage.getItem(STORAGE_KEY);
 
   if (!apiKey) {
-    // First time - ask for key
     apiKey = prompt(
-      "Please enter your Google Maps API key to use this site.\n\n" +
+      "Please enter your Google Maps API key.\n\n" +
       "Get one here: https://console.cloud.google.com/apis/credentials\n\n" +
-      "Recommended restriction: https://abwycq.github.io/gpedal/*"
+      "Restrict it to: https://abwycq.github.io/gpedal/*"
     );
 
     if (apiKey && apiKey.trim() !== "") {
       localStorage.setItem(STORAGE_KEY, apiKey.trim());
-      // Reload so the script loads before bundle.js
       window.location.reload();
     } else {
-      alert("A Google Maps API key is required.");
+      alert("A Google Maps API key is required to use this site.");
     }
   } else {
-    // Key exists - load Google Maps synchronously
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
-    script.async = false;   // Important: load synchronously
-    document.head.appendChild(script);
+    loadGoogleMaps(apiKey);
   }
+
+  // Function to let users change their API key later
+  window.changeGoogleMapsKey = function() {
+    const currentKey = localStorage.getItem(STORAGE_KEY) || "";
+    const newKey = prompt("Enter your new Google Maps API key:", currentKey);
+
+    if (newKey && newKey.trim() !== "") {
+      localStorage.setItem(STORAGE_KEY, newKey.trim());
+      alert("API key updated. The page will now reload.");
+      window.location.reload();
+    }
+  };
 })();
 </script>
 
