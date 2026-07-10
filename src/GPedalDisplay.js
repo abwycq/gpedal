@@ -57,6 +57,9 @@ export class GPedalDisplay {
   }
 
   async init() {
+    // preload the the marker library
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
     this.miniMap = new google.maps.Map(document.getElementById('tracker'), {
       center: this.ridingState.point.location,
       zoom: 14,
@@ -92,10 +95,11 @@ export class GPedalDisplay {
     });
     routePath.setMap(this.fullMap);
 
-    this.fullMarker = new google.maps.Marker({
+    //this.fullMarker = new google.maps.Marker({  // deprecated
+    this.fullMarker = new AdvancedMarkerElement({
         position: this.ridingState.point.location,
         map: this.fullMap,
-        icon: './images/here.png'
+        //icon: './images/here.png'  // advanced markers don't have icons
     });
     this.fullMarker.setMap(this.fullMap);
 
