@@ -839,5 +839,49 @@
     </script>
 
     <script src="bundle.js?v=3dfva3d"></script>
+    
+    <script>
+(function() {
+  const STORAGE_KEY = 'gpedal_google_maps_key';
+
+  function loadGoogleMaps(key) {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  let apiKey = localStorage.getItem(STORAGE_KEY);
+
+  if (!apiKey) {
+    apiKey = prompt(
+      "Please enter your Google Maps API key.\n\n" +
+      "You can get one for free at:\n" +
+      "https://console.cloud.google.com/apis/credentials\n\n" +
+      "After creating the key, restrict it to:\n" +
+      "https://abwycq.github.io/gpedal/*"
+    );
+
+    if (apiKey) {
+      localStorage.setItem(STORAGE_KEY, apiKey.trim());
+      loadGoogleMaps(apiKey.trim());
+    } else {
+      alert("Google Maps API key is required for full functionality.");
+    }
+  } else {
+    loadGoogleMaps(apiKey);
+  }
+
+  // Optional: Allow users to change the key later
+  window.changeGoogleMapsKey = function() {
+    const newKey = prompt("Enter a new Google Maps API key:");
+    if (newKey) {
+      localStorage.setItem(STORAGE_KEY, newKey.trim());
+      location.reload();
+    }
+  };
+})();
+</script>
   </body>
 </html>
