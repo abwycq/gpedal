@@ -140,7 +140,6 @@ export class GPedalDisplay {
 
   collectPower(power) {
     this.powerSamples.push(power);
-    console.log("Power sample received:", value); // DEBUG
   }
 
   collectHR(hr) {
