@@ -843,45 +843,32 @@
     <script>
 (function() {
   const STORAGE_KEY = 'gpedal_google_maps_key';
-
-  function loadGoogleMaps(key) {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-  }
-
   let apiKey = localStorage.getItem(STORAGE_KEY);
 
   if (!apiKey) {
+    // First time - ask for key
     apiKey = prompt(
-      "Please enter your Google Maps API key.\n\n" +
-      "You can get one for free at:\n" +
-      "https://console.cloud.google.com/apis/credentials\n\n" +
-      "After creating the key, restrict it to:\n" +
-      "https://abwycq.github.io/gpedal/*"
+      "Please enter your Google Maps API key to use this site.\n\n" +
+      "Get one here: https://console.cloud.google.com/apis/credentials\n\n" +
+      "Recommended restriction: https://abwycq.github.io/gpedal/*"
     );
 
-    if (apiKey) {
+    if (apiKey && apiKey.trim() !== "") {
       localStorage.setItem(STORAGE_KEY, apiKey.trim());
-      loadGoogleMaps(apiKey.trim());
+      // Reload so the script loads before bundle.js
+      window.location.reload();
     } else {
-      alert("Google Maps API key is required for full functionality.");
+      alert("A Google Maps API key is required.");
     }
   } else {
-    loadGoogleMaps(apiKey);
+    // Key exists - load Google Maps synchronously
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+    script.async = false;   // Important: load synchronously
+    document.head.appendChild(script);
   }
-
-  // Optional: Allow users to change the key later
-  window.changeGoogleMapsKey = function() {
-    const newKey = prompt("Enter a new Google Maps API key:");
-    if (newKey) {
-      localStorage.setItem(STORAGE_KEY, newKey.trim());
-      location.reload();
-    }
-  };
 })();
 </script>
+
   </body>
 </html>
