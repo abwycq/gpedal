@@ -140,6 +140,7 @@ export class GPedalDisplay {
 
   collectPower(power) {
     this.powerSamples.push(power);
+    console.log("Power sample received:", value); // DEBUG
   }
 
   collectHR(hr) {
@@ -337,6 +338,7 @@ export class GPedalDisplay {
         //console.log(this.ridingState.point.smoothedGrade, this.ridingState.point.grade, this.ridingState.point.elevation, this.ridingState.pointIdx);
         let velocity = this.speedFromPower(this.ridingState.watts, this.ridingState.point.smoothedGrade,
           this.ridingState.point.elevation);
+        console.log("Ride tick - Watts:", this.ridingState.watts, "Speed:", velocity); // DEBUG
         let smoothed_velocity = this.ridingState.speed + ((velocity - this.ridingState.speed) * 0.2);
         if(this.ridingState.watts < 50 && smoothed_velocity < 0.447) {
           smoothed_velocity = 0;
